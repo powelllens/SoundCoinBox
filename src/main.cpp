@@ -179,13 +179,14 @@ void loop() {
   }
 
   flushInput();
+  randomSeed(analogRead(4));
 
   if (Coindetected) {
     while (not digitalRead(MusicBoardActivePin)){
       delay(10);
     }
     delay(1000);
-    Zufallszahl = random(2, 10);
+    Zufallszahl = random(2, 11);
     if (Zufallszahl == 2) {
       if (! sfx.playTrack("T02     OGG") ) {
         Serial.print("Failed to play track 2");
