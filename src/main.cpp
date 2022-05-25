@@ -91,7 +91,6 @@ int getRandomNewNumber()
     {
       TracksPlayed[i] = 0;
     }
-    Serial.println("new");
   }
   do
   {
