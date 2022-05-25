@@ -9,7 +9,6 @@
 // Connect to the RST pin on the Sound Board
 #define SFX_RST 7
 
-
 #define PowerRelaiPin 4
 #define MusicBoardPowerPin 6
 #define MusicBoardActivePin 10
@@ -38,7 +37,6 @@ int Zufallszahl = 0;
 bool MusicActiveOld = false;
 bool MusicActive = false;
 
-
 // You can also monitor the ACT pin for when audio is playing!
 
 // we'll be using software serial
@@ -51,16 +49,20 @@ Adafruit_Soundboard sfx = Adafruit_Soundboard(&ss, NULL, SFX_RST);
 // can also try hardware serial with
 // Adafruit_Soundboard sfx = Adafruit_Soundboard(&Serial1, NULL, SFX_RST);
 char SoundName[13];
+int TracksPlayed[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 /************************ MENU HELPERS ***************************/
 
-void flushInput() {
+void flushInput()
+{
   // Read all available serial input to flush pending data.
   uint16_t timeoutloop = 0;
-  while (timeoutloop++ < 40) {
-    while (ss.available()) {
+  while (timeoutloop++ < 40)
+  {
+    while (ss.available())
+    {
       ss.read();
-      timeoutloop = 0;  // If char was received reset the timer
+      timeoutloop = 0; // If char was received reset the timer
     }
     delay(1);
   }
@@ -69,7 +71,8 @@ void flushInput() {
 void CoinTrigger_ISR()
 {
   CoinSignal = not digitalRead(CoinTriggerPin);
-  if (CoinSignal) {
+  if (CoinSignal)
+  {
     GlobalTimer = 0;
     Serial.println("50ct Coin Detected!");
     Coindetected = true;
@@ -77,7 +80,43 @@ void CoinTrigger_ISR()
   }
 }
 
-void setup() {
+int getRandomNewNumber()
+{
+  bool nodouble = false;
+  int Number;
+  if (TracksPlayed[8] != 0)
+  {
+    TracksPlayed[0] = TracksPlayed[8];
+    for (int i = 1; i <= 8; i++)
+    {
+      TracksPlayed[i] = 0;
+    }
+    Serial.println("new");
+  }
+  do
+  {
+
+    Number = random(2, 11);
+    nodouble = true;
+    for (int i = 0; i <= 8; i++)
+    {
+      if (TracksPlayed[i] == Number)
+      {
+        nodouble = false;
+      }
+      else if ((TracksPlayed[i] == 0) && (nodouble == true))
+      {
+        TracksPlayed[i] = Number;
+        break;
+      }
+    }
+
+  } while (not nodouble);
+  return Number;
+}
+
+void setup()
+{
   // initialize digital pin LED_BUILTIN as an output.
   pinMode(PowerRelaiPin, OUTPUT);
   pinMode(MusicBoardPowerPin, OUTPUT);
@@ -106,10 +145,13 @@ void setup() {
   BatteryVoltageRaw = analogRead(BatteryVoltagePin);
   BatteryVoltage = 0.0208 * BatteryVoltageRaw + 0.083;
   Serial.println("Voltage:" + String(BatteryVoltage));
-  if (BatteryVoltage < 6.95) {
+  if (BatteryVoltage < 6.95)
+  {
     digitalWrite(PowerRelaiPin, LOW);
     delay(1000);
-  } else {
+  }
+  else
+  {
     digitalWrite(MusicBoardPowerPin, HIGH);
     digitalWrite(CoinCounterPowerPin, HIGH);
     delay(200);
@@ -120,117 +162,109 @@ void setup() {
   ss.begin(9600);
   // can also do Serial1.begin(9600)
 
-  if (!sfx.reset()) {
+  if (!sfx.reset())
+  {
     Serial.println("Not found");
     digitalWrite(PowerRelaiPin, LOW);
   }
   Serial.println("SFX board found");
   flushInput();
-  if (! sfx.playTrack("T00     OGG") ) {
-    Serial.println("Failed to play track?");
+  char TrackNameMain[12]; // Declare the array
+  strcpy(TrackNameMain, "T00     OGG");
+  if (!sfx.playTrack(TrackNameMain))
+  {
+    Serial.println("Failed to play track 00");
   }
-  digitalWrite(MusicSpeakerRelaiPin,HIGH);
+  digitalWrite(MusicSpeakerRelaiPin, HIGH);
   CoindetectionActive = true;
 }
 
 // the loop function runs over and over again forever
-void loop() {
+void loop()
+{
   ButtonPressed = not digitalRead(ButtonPin);
   digitalWrite(LED_BUILTIN, ButtonPressed);
-   
-  if (ButtonPressed) {
+
+  if (ButtonPressed)
+  {
     ButtonCounter = ButtonCounter + 1;
-    if (ButtonCounter == 40) {
+    if (ButtonCounter == 40)
+    {
       BatteryVoltageRaw = analogRead(BatteryVoltagePin);
       BatteryVoltage = 0.0208 * BatteryVoltageRaw + 0.083;
       Serial.println("Voltage:" + String(BatteryVoltage));
-      if (! sfx.playTrack("T01     OGG") ) {
-        Serial.println("Failed to play track?");
+      char TrackNameMain[12]; // Declare the array
+      strcpy(TrackNameMain, "T01     OGG");
+      if (!sfx.playTrack(TrackNameMain))
+      {
+        Serial.println("Failed to play track 01");
       }
       BatteryCheck = true;
-      BatteryCounter = 25; //0%
-      if (BatteryVoltage > 8.0) {
-        BatteryCounter = 40; //20%
+      BatteryCounter = 25; // 0%
+      if (BatteryVoltage > 8.0)
+      {
+        BatteryCounter = 40; // 20%
       }
-      if (BatteryVoltage > 9.0) {
-        BatteryCounter = 60; //40%
+      if (BatteryVoltage > 9.0)
+      {
+        BatteryCounter = 60; // 40%
       }
-      if (BatteryVoltage > 10.0) {
-        BatteryCounter = 80; //60%
+      if (BatteryVoltage > 10.0)
+      {
+        BatteryCounter = 80; // 60%
       }
-      if (BatteryVoltage > 11.0) {
-        BatteryCounter = 100; //80%
+      if (BatteryVoltage > 11.0)
+      {
+        BatteryCounter = 100; // 80%
       }
-      if (BatteryVoltage > 11.8) {
-        BatteryCounter = 120; //100%
+      if (BatteryVoltage > 11.8)
+      {
+        BatteryCounter = 120; // 100%
       }
       BatteryTime = 0;
-      while (BatteryCheck) {
+      while (BatteryCheck)
+      {
         BatteryTime = BatteryTime + 1;
-        if (BatteryTime > BatteryCounter) {
+        if (BatteryTime > BatteryCounter)
+        {
           BatteryCheck = false;
           sfx.stop();
         }
         delay(100);
       }
     }
-  } else {
+  }
+  else
+  {
     ButtonCounter = 0;
   }
 
   flushInput();
-  randomSeed(analogRead(4));
+  randomSeed(analogRead(BatteryVoltagePin));
 
-  if (Coindetected) {
-    while (not digitalRead(MusicBoardActivePin)){
+  if (Coindetected)
+  {
+    while (not digitalRead(MusicBoardActivePin))
+    {
       delay(10);
     }
     delay(1000);
-    Zufallszahl = random(2, 11);
-    if (Zufallszahl == 2) {
-      if (! sfx.playTrack("T02     OGG") ) {
-        Serial.print("Failed to play track 2");
-      }
+    Zufallszahl = getRandomNewNumber();
+    char TitleName[3];
+    String Zufallstr;
+    Zufallstr = String(Zufallszahl);
+    Zufallstr.toCharArray(TitleName, 3);
+    if (Zufallszahl < 10)
+    {
+      TitleName[1] = TitleName[0];
+      TitleName[0] = 48;
     }
-    if (Zufallszahl == 3) {
-      if (! sfx.playTrack("T03     OGG") ) {
-        Serial.print("Failed to play track 3");
-      }
-    }
-    if (Zufallszahl == 4) {
-      if (! sfx.playTrack("T04     OGG") ) {
-        Serial.print("Failed to play track 4");
-      }
-    }
-    if (Zufallszahl == 5) {
-      if (! sfx.playTrack("T05     OGG") ) {
-        Serial.print("Failed to play track 5");
-      }
-    }
-    if (Zufallszahl == 6) {
-      if (! sfx.playTrack("T06     OGG") ) {
-        Serial.print("Failed to play track 6");
-      }
-    }
-    if (Zufallszahl == 7) {
-      if (! sfx.playTrack("T07     OGG") ) {
-        Serial.print("Failed to play track 7");
-      }
-    }
-    if (Zufallszahl == 8) {
-      if (! sfx.playTrack("T08     OGG") ) {
-        Serial.print("Failed to play track 8");
-      }
-    }
-    if (Zufallszahl == 9) {
-      if (! sfx.playTrack("T09     OGG") ) {
-        Serial.print("Failed to play track 9");
-      }
-    }
-    if (Zufallszahl == 10) {
-      if (! sfx.playTrack("T10     OGG") ) {
-        Serial.print("Failed to play track 10");
-      }
+    String Track = "T" + String(TitleName) + "     OGG";
+    char TrackName[12];
+    Track.toCharArray(TrackName, 12);
+    if (!sfx.playTrack(TrackName))
+    {
+      Serial.print("Failed to play track " + Zufallszahl);
     }
     SoundTriggered = true;
     Coindetected = false;
@@ -238,7 +272,8 @@ void loop() {
   }
 
   SoundRunning = not digitalRead(MusicBoardActivePin);
-  if ((SoundTriggered == true) and (SoundRunning == false)) {
+  if ((SoundTriggered == true) and (SoundRunning == false))
+  {
     Serial.println("Reset");
     digitalWrite(CoinCounterPowerPin, HIGH);
     delay(500);
@@ -246,13 +281,12 @@ void loop() {
   }
 
   GlobalTimer = GlobalTimer + 1;
-  if (GlobalTimer > 250) {
+  if (GlobalTimer > 250)
+  {
     digitalWrite(PowerRelaiPin, LOW);
     digitalWrite(MusicBoardPowerPin, LOW);
     digitalWrite(CoinCounterPowerPin, LOW);
-    digitalWrite(MusicSpeakerRelaiPin,LOW);
+    digitalWrite(MusicSpeakerRelaiPin, LOW);
   }
   delay(10);
 }
-
-
