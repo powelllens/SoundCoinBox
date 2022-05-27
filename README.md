@@ -20,8 +20,8 @@ T01.ogg is the Batterylevel - will be played if you press and Hold the Button fo
 
 T02.ogg - T10.ogg are the random Soundfiles.
 
-All 8 soundfiles must be available, there is a risk of no sound being played if a coin is detected with a missing file.
-If you do not have 8 Files available copy some of the other Files and rename them.
+All 9 soundfiles must be available, there is a risk of no sound being played if a coin is detected with a missing file.
+If you do not have 9 Files available copy some of the other Files and rename them.
 
 Check:
 [Adafruit Soundboard](https://learn.adafruit.com/adafruit-audio-fx-sound-board/creating-audio-files)
